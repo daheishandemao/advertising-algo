@@ -243,10 +243,15 @@ if __name__ == '__main__':
 
     # 生成semantic ID
     print("Generating semantic IDs...")
+    # 确保 args.mm_emb_id 是单个值
+    if isinstance(args.mm_emb_id, list):
+        feature_id = args.mm_emb_id[0]  # 取第一个
+    else:
+        feature_id = args.mm_emb_id
     processed_semantic_features, semantic_vocab_sizes = generate_and_process_semantic_ids(
         rqvae_model,
         data_dir=os.environ.get('TRAIN_DATA_PATH'),
-        feature_id=args.mm_emb_id,
+        feature_id=feature_id,
         args=args
     )
 
