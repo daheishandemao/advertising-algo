@@ -4,47 +4,50 @@
 2. 训练 RQ-VAE 模型, 训练完成后将数据转换为Semantic Id.
 3. 参照 Item Sparse 特征格式处理Semantic Id，作为新特征加入Baseline模型训练.
 """
+from pathlib import Path
+import pickle
 
 import torch
 import torch.nn.functional as F
 from sklearn.cluster import KMeans
+from dataset import load_mm_emb
 
-# class MmEmbDataset(torch.utils.data.Dataset):
-#     """
-#     Build Dataset for RQ-VAE Training
+class MmEmbDataset(torch.utils.data.Dataset):
+    """
+    Build Dataset for RQ-VAE Training
 
-#     Args:
-#         data_dir = os.environ.get('TRAIN_DATA_PATH')
-#         feature_id = MM emb ID
-#     """
+    Args:
+        data_dir = os.environ.get('TRAIN_DATA_PATH')
+        feature_id = MM emb ID
+    """
 
-#     def __init__(self, data_dir, feature_id):
-#         super().__init__()
-#         self.data_dir = Path(data_dir)
-#         self.mm_emb_id = [feature_id]
-#         self.mm_emb_dict = load_mm_emb(Path(data_dir, "creative_emb"), self.mm_emb_id)
+    def __init__(self, data_dir, feature_id):
+        super().__init__()
+        self.data_dir = Path(data_dir)
+        self.mm_emb_id = [feature_id]
+        self.mm_emb_dict = load_mm_emb(Path(data_dir, "creative_emb"), self.mm_emb_id)
 
-#         self.mm_emb = self.mm_emb_dict[self.mm_emb_id[0]]
-#         self.tid_list, self.emb_list = list(self.mm_emb.keys()), list(self.mm_emb.values())
-#         self.emb_list = [torch.tensor(emb, dtype=torch.float32) for emb in self.emb_list]
+        self.mm_emb = self.mm_emb_dict[self.mm_emb_id[0]]
+        self.tid_list, self.emb_list = list(self.mm_emb.keys()), list(self.mm_emb.values())
+        self.emb_list = [torch.tensor(emb, dtype=torch.float32) for emb in self.emb_list]
 
-#         assert len(self.tid_list) == len(self.emb_list)
-#         self.item_cnt = len(self.tid_list)
+        assert len(self.tid_list) == len(self.emb_list)
+        self.item_cnt = len(self.tid_list)
 
-#     def __getitem__(self, index):
-#         tid = torch.tensor(self.tid_list[index], dtype=torch.long)
-#         emb = self.emb_list[index]
-#         return tid, emb
+    def __getitem__(self, index):
+        tid = torch.tensor(self.tid_list[index], dtype=torch.long)
+        emb = self.emb_list[index]
+        return tid, emb
 
-#     def __len__(self):
-#         return self.item_cnt
+    def __len__(self):
+        return self.item_cnt
 
-#     @staticmethod
-#     def collate_fn(batch):
-#         tid, emb = zip(*batch)
+    @staticmethod
+    def collate_fn(batch):
+        tid, emb = zip(*batch)
 
-#         tid_batch, emb_batch = torch.stack(tid, dim=0), torch.stack(emb, dim=0)
-#         return tid_batch, emb_batch
+        tid_batch, emb_batch = torch.stack(tid, dim=0), torch.stack(emb, dim=0)
+        return tid_batch, emb_batch
 
 
 ## Kmeans
