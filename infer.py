@@ -148,11 +148,22 @@ def infer():
     )
     usernum, itemnum = test_dataset.usernum, test_dataset.itemnum
     feat_statistics, feat_types = test_dataset.feat_statistics, test_dataset.feature_types
+    # 初始化模型
     model = BaselineModel(usernum, itemnum, feat_statistics, feat_types, args).to(args.device)
     model.eval()
 
+    # 安全加载权重
     ckpt_path = get_ckpt_path()
-    model.load_state_dict(torch.load(ckpt_path, map_location=torch.device(args.device)))
+
+    state_dict = torch.load(ckpt_path, map_location=torch.device(args.device))
+    # 过滤掉不存在的键
+    model_state_dict = model.state_dict()
+    pretrained_dict = {k: v for k, v in state_dict.items()
+                       if k in model_state_dict and model_state_dict[k].shape == v.shape}
+    model_state_dict.update(pretrained_dict)
+    model.load_state_dict(model_state_dict, strict=False)
+
+    # model.load_state_dict(torch.load(ckpt_path, map_location=torch.device(args.device)))
     all_embs = []
     user_list = []
     for step, batch in tqdm(enumerate(test_loader), total=len(test_loader)):

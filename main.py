@@ -84,7 +84,7 @@ def train_rqvae_model(rqvae_model, args):
     optimizer = torch.optim.Adam(rqvae_model.parameters(), lr=1e-3)
 
     rqvae_model.train()
-    for epoch in range(10):  # RQ-VAE训练epochs
+    for epoch in range(3):  # RQ-VAE训练epochs
         total_loss = 0
         for tid_batch, emb_batch in tqdm(dataloader, desc=f"RQ-VAE Epoch {epoch + 1}"):
             emb_batch = emb_batch.to(args.device)
@@ -165,6 +165,11 @@ def update_feat_config_with_semantic_ids(feat_statistics, feat_types, semantic_v
         updated_feat_types['item_sparse'] = []
 
     updated_feat_types['item_sparse'].extend(semantic_feature_names)
+
+    # 如果提供了dataset对象，更新其feature_default_value
+    if dataset is not None:
+        for feature_name in semantic_feature_names:
+            dataset.feature_default_value[feature_name] = 0  # 设置默认值为0
 
     return updated_feat_statistics, updated_feat_types
 
